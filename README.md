@@ -1,113 +1,93 @@
-![Tecboard](.github/thumbnail.png)
+# Tecboard
 
-# Tecboard - Hub de Eventos de Tecnologia
+A tech events hub built with React, Material UI, React Hook Form, Zod, and TanStack Query.
 
-Aplicação web desenvolvida em React para gerenciar e visualizar eventos de tecnologia. O projeto permite criar, listar e paginar eventos com diferentes temas como Front-end, Design e Marketing.
+## 📖 About
 
-## 🔨 Funcionalidades do projeto
+Tecboard lets users browse tech events (Front-end, Design, Marketing, and more) and register new ones. Events are shown as cards with image, name, date, and theme, and can be explored through pagination or infinite scroll.
 
-A aplicação oferece as seguintes funcionalidades:
+The project follows Alura's "React: explorando frameworks e bibliotecas para criação de interfaces e validação de formulários" course, and focuses on the libraries that make a React app production-ready: a component library, schema-based form validation, and server-state management.
 
-- **Listagem de eventos**: Visualização de eventos em cards com imagem, nome, data e tema
-- **Cadastro de eventos**: Formulário para criação de novos eventos
-- **Paginação**: Navegação entre páginas de eventos
-- **Infinite scroll**: Carregamento progressivo de mais eventos
-- **Validação de formulários**: Validação de dados com Zod
-- **Temas categorizados**: Organização por categorias (Front-end, Design, Marketing)
-- **Interface responsiva**: Design adaptável usando Material-UI
+## ✨ Features
 
-## ✔️ Técnicas e tecnologias utilizadas
+- List of events as cards (image, name, date, theme)
+- Event registration form with schema validation
+- Pagination with previous/next controls
+- Infinite scroll with a "load more" button
+- Events organized by theme (Front-end, Design, Marketing)
+- Responsive layout
 
-As principais tecnologias e bibliotecas utilizadas no projeto:
+## 🛠️ Tech Stack
 
-- `React 19`: Biblioteca principal para construção da interface
-- `Vite`: Build tool e servidor de desenvolvimento rápido
-- `Material-UI (MUI)`: Biblioteca de componentes para React
-- `React Hook Form`: Gerenciamento de formulários com alta performance
-- `Zod`: Validação e parsing de schemas TypeScript-first
-- `TanStack Query`: Gerenciamento de estado para requisições HTTP
-- `JSON Server`: API mock para desenvolvimento
-- `ESLint`: Linting e padronização de código
+- **React 19**
+- **Vite**
+- **Material UI (MUI)**: component library and responsive layout
+- **React Hook Form**: performant form state management
+- **Zod**: schema validation with custom error messages
+- **TanStack Query**: data fetching, caching, pagination, and infinite queries
+- **json-server**: mock REST API
+- **ESLint**
 
-## 🎯 Funcionalidades implementadas
+## 🚀 Getting Started
 
-### Sistema de Paginação
-- Navegação entre páginas com botões "Anterior" e "Próxima"
-- Controle de estado da página atual
-- Desabilitação inteligente de botões quando necessário
+### Prerequisites
 
-### Infinite Query
-- Carregamento progressivo de eventos
-- Botão "Carregar mais" para buscar próximas páginas
-- Otimização de performance com cache inteligente
+- Node.js 18 or higher
+- pnpm
 
-### Validação de Formulários
-- Validação em tempo real com Zod
-- Mensagens de erro personalizadas
-- Campos obrigatórios e validação de tipos
+### Installation
 
-## 📁 Acesso ao projeto
-
-Você pode acessar o código fonte do projeto neste repositório ou fazer o download/clone para sua máquina local.
-
-## 🛠️ Abrir e rodar o projeto
-
-Após baixar o projeto, siga os passos abaixo:
-
-### Pré-requisitos
-- Node.js (versão 18 ou superior)
-- pnpm (gerenciador de pacotes)
-
-### Instalação
-
-1. **Clone o repositório** (se ainda não fez):
 ```bash
-git clone <url-do-repositorio>
-cd 4874-tecboard-react-vite
-```
+# Clone the repository
+git clone https://github.com/DanielGranato/react-tecboard-ui-forms.git
 
-2. **Instale as dependências**:
-```bash
+# Navigate into the project folder
+cd react-tecboard-ui-forms
+
+# Install dependencies
 pnpm install
 ```
 
-3. **Execute o servidor JSON (API mock)**:
-```bash
-pnpm run json-server
-```
+### Running locally
 
-4. **Em outro terminal, execute a aplicação**:
+The project needs two processes running at the same time: the mock API and the React app.
+
 ```bash
+# Terminal 1: start the mock API (http://localhost:3000)
+pnpm run json-server
+
+# Terminal 2: start the React app (http://localhost:5173)
 pnpm run dev
 ```
 
-5. **Acesse a aplicação**:
-Abra seu navegador e vá para `http://localhost:5173`
+### Other scripts
 
-### Scripts disponíveis
-
-- `pnpm run dev` - Inicia o servidor de desenvolvimento
-- `pnpm run build` - Gera a build de produção
-- `pnpm run preview` - Preview da build de produção
-- `pnpm run lint` - Executa o linting do código
+| Script | Description |
+| --- | --- |
+| `pnpm run build` | Build for production |
+| `pnpm run preview` | Preview the production build locally |
+| `pnpm run lint` | Run ESLint |
 
 ## 🌐 API
 
-O projeto utiliza JSON Server para simular uma API REST. Os dados dos eventos ficam armazenados no arquivo `db.json` e a API roda na porta 3000.
+json-server simulates a REST API, with data stored in `db.json`.
 
-**Endpoints disponíveis:**
-- `GET /events` - Lista todos os eventos
-- `GET /events?_page=1&_per_page=4` - Lista eventos com paginação
-- `POST /events` - Cria um novo evento
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| `GET` | `/events` | List all events |
+| `GET` | `/events?_page=1&_per_page=4` | List events with pagination |
+| `POST` | `/events` | Create a new event |
 
-## 📚 Mais informações do curso
+## 🎯 Learning Objectives
 
-Este projeto foi desenvolvido como parte do curso da Alura sobre React com Vite, abordando conceitos modernos de desenvolvimento frontend como:
+This project was built to practice:
 
-- Gerenciamento de estado com TanStack Query
-- Validação de formulários
-- Paginação e infinite scroll
-- Design system com Material-UI
-- Performance e otimização
+- Building interfaces with a component library (MUI)
+- Managing forms with React Hook Form
+- Validating data with Zod schemas and custom error messages
+- Fetching and caching server data with TanStack Query (`useQuery`, `useMutation`)
+- Implementing pagination and infinite scroll (`useInfiniteQuery`)
 
-Gostou do projeto e quer conhecer mais? Você pode acessar o curso da Alura que desenvolve este projeto!
+## 📄 License
+
+This project is open source and available under the MIT License.
