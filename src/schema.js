@@ -1,10 +1,7 @@
-import * as z from 'zod';
+import * as z from 'zod'
 
-const usersSchema = z.object({
-    name: z.string(),
-    email: z.string().email(),
-});
-
-
-
-export default usersSchema;
+export const eventSchema = z.object({
+  name: z.string().trim().min(4, {error: "Nome inválido! Preencha corretamente"}),
+  date: z.coerce.date(),
+  theme: z.string()
+})
