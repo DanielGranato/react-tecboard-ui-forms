@@ -17,38 +17,11 @@ import { styled } from '@mui/material/styles'
 
 import tecboardLogo from '../assets/tecboard.svg'
 import bannerImage from '../assets/banner.png'
-import { useState } from 'react'
 import { eventSchema } from '../schema'
-
-const eventCategories = [
-  {
-    name: 'Front-end',
-    events: [
-      { id: 1, name: 'Workshop React', theme: 'Front-end', date: '20/05/2025', image: 'https://placehold.co/236x282' },
-      { id: 2, name: 'Conference JS', theme: 'Front-end', date: '15/06/2025', image: 'https://placehold.co/236x282' },
-      { id: 3, name: 'Vue.js Masterclass', theme: 'Front-end', date: '10/07/2025', image: 'https://placehold.co/236x282' },
-      { id: 4, name: 'Angular Workshop', theme: 'Front-end', date: '25/07/2025', image: 'https://placehold.co/236x282' },
-    ]
-  },
-  {
-    name: 'Design',
-    events: [
-      { id: 5, name: 'UX/UI Design', theme: 'Design', date: '05/08/2025', image: 'https://placehold.co/236x282' },
-      { id: 6, name: 'Figma Masterclass', theme: 'Design', date: '12/08/2025', image: 'https://placehold.co/236x282' },
-      { id: 7, name: 'Design Thinking', theme: 'Design', date: '20/08/2025', image: 'https://placehold.co/236x282' },
-      { id: 8, name: 'Adobe Creative', theme: 'Design', date: '30/08/2025', image: 'https://placehold.co/236x282' },
-    ]
-  },
-  {
-    name: 'Marketing',
-    events: [
-      { id: 9, name: 'Marketing Digital', theme: 'Marketing', date: '05/09/2025', image: 'https://placehold.co/236x282' },
-      { id: 10, name: 'SEO Avançado', theme: 'Marketing', date: '15/09/2025', image: 'https://placehold.co/236x282' },
-      { id: 11, name: 'Social Media', theme: 'Marketing', date: '25/09/2025', image: 'https://placehold.co/236x282' },
-      { id: 12, name: 'Growth Hacking', theme: 'Marketing', date: '05/10/2025', image: 'https://placehold.co/236x282' },
-    ]
-  }
-]
+import { useForm, Controller } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
 
 const Chip = styled(Box)(({ theme }) => ({
   display: 'inline-flex',
@@ -59,30 +32,55 @@ const Chip = styled(Box)(({ theme }) => ({
 }))
 
 export function Board() {
-  const [formData, setFormData] = useState({
-    name: '',
-    date: '',
-    theme: ''
-  })
+  const queryClient = useQueryClient()
 
-  const [error, setError] = useState('')
+  const [page, setPage] = useState(1)
 
-  function handleChange(event) {
-    const { name, value } = event.target
-    setFormData((prevFormData) => ({...prevFormData, [name]: value}))
+  async function getEvents(page = 1) {
+    const response = await fetch(`http://localhost:3000/events?_page=${page}&_per_page=4`)
+    return response.json()
   }
 
-  function handleSubmit(event) {
-    event.preventDefault()
+  const { data: eventsData, isLoading, isError } = useQuery({
+    queryKey: ['getEvents', page],
+    queryFn: () => getEvents(page)
+  })
 
-    const result = eventSchema.safeParse(formData)
+  async function getInfiniteEvents({ pageParam }) {
+    const response = await fetch(`http://localhost:3000/events?_page=${pageParam}&_per_page=4`)
+    return response.json()
+  }
 
-    if (result.success) {
-      console.log(result.data)
-    } else {
-      const firstError = result.error.issues[0]
-      setError(firstError.message)
+  const { data: eventsInfiniteData, isPending: isInfinitePending, isError: isInfiniteError, fetchNextPage } = useInfiniteQuery({
+    queryKey: ['getInfiniteQuery'],
+    queryFn: getInfiniteEvents,
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => lastPage.next
+  })
+
+  async function postEvents(event) {
+    const response = await fetch('http://localhost:3000/events', {
+      method: 'POST',
+      body: JSON.stringify(event)
+    })
+    return response.json()
+  }
+
+  const postEventMutation = useMutation({
+    mutationKey: ['postEvents'],
+    mutationFn: postEvents,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['getEvents'] })
     }
+  })
+
+  const { handleSubmit, control } = useForm({
+    resolver: zodResolver(eventSchema)
+  })
+
+  function handleOnSubmit(data) {
+    postEventMutation.mutate(data)
+    console.log(data)
   }
 
   return (
@@ -133,7 +131,7 @@ export function Board() {
         {/* Formulário */}
         <Box
           component='form'
-          onSubmit={handleSubmit}
+          onSubmit={handleSubmit(handleOnSubmit)}
           sx={{
             backgroundColor: '#212121',
             width: '100%',
@@ -144,83 +142,118 @@ export function Board() {
           }}
         >
           <Typography>Preencha para criar um evento:</Typography>
-          <Typography>Erro: {error}</Typography>
           <Stack spacing={2}>
             <FormControl fullWidth>
               <InputLabel shrink htmlFor='name' sx={{ position: 'static', transform: 'none', mb: 1 }}>Qual o nome do evento?</InputLabel>
-              <OutlinedInput
-                id='name'
+              <Controller
                 name='name'
-                placeholder='Summer dev hits'
-                fullWidth
-                sx={{ height: '36px' }}
-                onChange={handleChange}
-                value={formData.name}
+                control={control}
+                render={({ field }) => <OutlinedInput
+                  id='name'
+                  placeholder='Summer dev hits'
+                  fullWidth
+                  sx={{ height: '36px' }}
+                  {...field}
+                />}
               />
             </FormControl>
 
             <FormControl fullWidth>
               <InputLabel shrink htmlFor='date' sx={{ position: 'static', transform: 'none', mb: 1 }}>Data do evento</InputLabel>
-              <OutlinedInput
-                id='date'
+              <Controller
                 name='date'
-                placeholder='XX/XX/XXXX'
-                fullWidth
-                sx={{ height: '36px' }}
-                onChange={handleChange}
-                value={formData.date}
+                control={control}
+                render={({ field }) => <OutlinedInput
+                  id='date'
+                  placeholder='XX/XX/XXXX'
+                  fullWidth
+                  sx={{ height: '36px' }}
+                  {...field}
+                />}
               />
             </FormControl>
 
             <FormControl fullWidth>
               <InputLabel shrink htmlFor='theme' sx={{ position: 'static', transform: 'none', mb: 1 }}>Tema do evento</InputLabel>
-              <Select
-                id='theme'
+              <Controller
                 name='theme'
-                defaultValue=''
-                displayEmpty
-                fullWidth
-                sx={{ height: '36px' }}
-                onChange={handleChange}
-                value={formData.theme}
-              >
-                <MenuItem value='' disabled>
-                  Selecione uma opção
-                </MenuItem>
-                <MenuItem value='Front-end'>Front-end</MenuItem>
-                <MenuItem value='Design'>Design</MenuItem>
-                <MenuItem value='Marketing'>Marketing</MenuItem>
-              </Select>
+                control={control}
+                render={({ field }) => <Select
+                  id='theme'
+                  defaultValue=''
+                  displayEmpty
+                  fullWidth
+                  sx={{ height: '36px' }}
+                  {...field}
+                >
+                  <MenuItem value='' disabled>
+                    Selecione uma opção
+                  </MenuItem>
+                  <MenuItem value='Front-end'>Front-end</MenuItem>
+                  <MenuItem value='Design'>Design</MenuItem>
+                  <MenuItem value='Marketing'>Marketing</MenuItem>
+                </Select>}
+              />
             </FormControl>
 
             <Button type='submit' sx={{ alignSelf: 'center' }}>Criar evento</Button>
           </Stack>
         </Box>
 
+        {isError && <Typography>Deu ruim</Typography>}
+
+        {isLoading && <Typography>Ta carregando</Typography>}
+
         {/* Lista de eventos */}
         <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '1200px', mt: '60px', gap: '64px' }}>
-          {eventCategories.map((category) => (
-            <Box key={category.name}>
-              <Typography>{category.name}</Typography>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button onClick={() => setPage(eventsData.prev)} disabled={page === 1}>Página anterior</Button>
+            <Button
+              onClick={() => {
+                if (eventsData.next) {
+                  setPage(eventsData.next)
+                }
+              }}
+            >Próxima página</Button>
+          </Box>
 
-              <Grid container spacing={3} sx={{ maxWidth: '1200px', mx: 'auto' }}>
-                {category.events.map((event) => (
-                  <Grid item xs={12} sm={6} md={4} key={event.id}>
-                    <Card sx={{ width: '282px' }}>
-                      <CardMedia component='img' height='236px' image={event.image} alt={event.name} />
-                      <CardContent sx={{ flexGrow: 1, py: 3, px: 2, backgroundColor: '#212121' }}>
-                        <Chip>
-                          <Typography variant='caption'>{event.theme}</Typography>
-                        </Chip>
-                        <Typography>{event.date}</Typography>
-                        <Typography>{event.name}</Typography>
-                      </CardContent>
-                    </Card>
-                  </Grid>
+          <Grid container spacing={3} sx={{ maxWidth: '1200px', mx: 'auto' }}>
+            {!isError && !isLoading && eventsData.data.map((event) => (
+              <Grid item xs={12} sm={6} md={4} key={event.id}>
+                <Card sx={{ width: '282px' }}>
+                  <CardMedia component='img' height='236px' image={event.image} alt={event.name} />
+                  <CardContent sx={{ flexGrow: 1, py: 3, px: 2, backgroundColor: '#212121' }}>
+                    <Chip>
+                      <Typography variant='caption'>{event.theme}</Typography>
+                    </Chip>
+                    <Typography>{event.date}</Typography>
+                    <Typography>{event.name}</Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+
+          <Grid container spacing={3} sx={{ maxWidth: '1200px', mx: 'auto' }}>
+            {!isInfiniteError && !isInfinitePending && eventsInfiniteData.pages.map((group, index) => (
+              <Grid item xs={12} sm={6} md={4} key={index}>
+                {group.data.map((event) => (
+                  <Card sx={{ width: '282px' }}>
+                    <CardMedia component='img' height='236px' image={event.image} alt={event.name} />
+                    <CardContent sx={{ flexGrow: 1, py: 3, px: 2, backgroundColor: '#212121' }}>
+                      <Chip>
+                        <Typography variant='caption'>{event.theme}</Typography>
+                      </Chip>
+                      <Typography>{event.date}</Typography>
+                      <Typography>{event.name}</Typography>
+                    </CardContent>
+                  </Card>
                 ))}
               </Grid>
-            </Box>
-          ))}
+            ))}
+          </Grid>
+          <Button onClick={fetchNextPage}>Carregar mais</Button>
+
         </Box>
       </Box>
     </Box>
